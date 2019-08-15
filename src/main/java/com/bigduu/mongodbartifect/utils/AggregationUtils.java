@@ -51,7 +51,7 @@ public class AggregationUtils {
         init();
         //遍历实体
         //获取super匹配路径
-        getAllPath(supperClassFields , searchBean , new ArrayList<>());
+        getAllPath(supperClassFields , searchBean , new ArrayList<>(),false);
         getMatch();
         return newAggregation(operations);
     }
@@ -86,11 +86,12 @@ public class AggregationUtils {
         for (Object o : list) {
             path.add(name);
             Field[] declaredFields = o.getClass().getDeclaredFields();
-            path = getAllPath(declaredFields , o , path);
+            getAllPath(declaredFields , o , path,true);
+            path = new ArrayList<>();
         }
     }
 
-    private List<String> getAllPath(Field[] fields , Object targetBean , List<String> path) {
+    private void getAllPath(Field[] fields , Object targetBean , List<String> path,Boolean isInList) {
         for (Field field : fields) {
             field.setAccessible(true);
             String typeName = field.getType().getName();
@@ -105,11 +106,21 @@ public class AggregationUtils {
                     }
                     //如果是基本类型就直接进入跳出阶段 直接match
                     if (ObjectType.STRING.equals(typeName) || ObjectType.DOUBLE.equals(typeName) || ObjectType.FLOAT.equals(typeName) || ObjectType.LONG.equals(typeName) || ObjectType.INTEGER.equals(typeName) || ObjectType.BOOLEAN.equals(typeName) || ObjectType.DATE.equals(typeName)) {
+                        List<String> tmp = new ArrayList<>();
+                        //如果再list中遍历
+                        if (isInList) {
+                            tmp = new ArrayList<>(path);
+                        }
                         path.add(field.getName());
                         String join = String.join("." , path);
                         supperMatch(join , field.get(targetBean) , typeName);
                         test.add(path);
-                        path = new ArrayList<>();
+                        //如果在list中遍历 则不应该清空path
+                        if (isInList) {
+                            path = new ArrayList<>(tmp);
+                        } else {
+                            path = new ArrayList<>();
+                        }
                     } else {
                         //如果不是基本类型 则封装一下List 让其遍历path
                         String name = field.getName();
@@ -119,12 +130,13 @@ public class AggregationUtils {
                         getListPath(list , name , path);
                         path = new ArrayList<>();
                     }
+
                 }
             } catch (IllegalAccessException e) {
                 log.error("run {}" , (Object) e.getStackTrace());
             }
         }
-        return path;
+        path = new ArrayList<>();
     }
 
     private void getMatch() {

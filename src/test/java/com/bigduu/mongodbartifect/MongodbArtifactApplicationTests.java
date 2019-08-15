@@ -56,20 +56,20 @@ public class MongodbArtifactApplicationTests {
 
     @Test
     public void contextLoads() {
-        Department testDepartment1 = Department.builder().name("testDepartment1").build();
+        Department testDepartment1 = Department.builder().name("testDepartment1").name1("1111").build();
         Department testDepartment2 = Department.builder().name("testDepartment2").build();
         List<Department> departments = new ArrayList<>();
         departments.add(testDepartment1);
         departments.add(testDepartment2);
 
         UserSearchBean userSearchBean = new UserSearchBean();
-        userSearchBean.setName("bigduu");
+        userSearchBean.setName("test1");
 
         userSearchBean.setDepartmentList(departments);
         userSearchBean.setGreatThanAge(20);
         userSearchBean.setLessThanAge(26);
-//        userSearchBean.setDepartment(testDepartment1);
-//        userSearchBean.setDepartment1(testDepartment1);
+        userSearchBean.setDepartment(testDepartment1);
+        userSearchBean.setDepartment1(testDepartment1);
 
 
         AggregationUtils aggregationUtils = new AggregationUtils();
