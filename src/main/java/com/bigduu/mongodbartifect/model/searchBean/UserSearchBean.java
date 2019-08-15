@@ -20,5 +20,6 @@ import java.sql.Timestamp;
 @Log4j2
 public class UserSearchBean extends User {
 
+
     private Timestamp timestamp;
 }

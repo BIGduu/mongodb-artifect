@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -34,14 +35,22 @@ public class MongodbArtifactApplicationTests {
     private MongoTemplate mongoTemplate;
 
     @Test
-    public void add(){
-        Department test1depart = Department.builder().name("test1depart").build();
-        Department test2depart = Department.builder().name("test2depart").build();
-        Department test3depart = Department.builder().name("test3depart").build();
-        List<Department> collect = Stream.of(test1depart , test2depart , test3depart).collect(Collectors.toList());
+    public void add() {
+        Department testDepartment1 = Department.builder().name("testDepartment1").build();
+        Department testDepartment2 = Department.builder().name("testDepartment2").build();
+        List<Department> departments = new ArrayList<>();
+        departments.add(testDepartment1);
+        departments.add(testDepartment2);
 
-        User test1 = User.builder().name("test1").departmentList(collect).build();
-        userService.save(test1);
+        User userSearchBean = new User();
+        userSearchBean.setName("bigduu");
+
+        userSearchBean.setDepartmentList(departments);
+        userSearchBean.setAge(22);
+        userSearchBean.setDepartment(testDepartment1);
+        userSearchBean.setDepartment1(testDepartment1);
+
+        userService.save(userSearchBean);
     }
 
 
@@ -54,15 +63,23 @@ public class MongodbArtifactApplicationTests {
         departments.add(testDepartment2);
 
         UserSearchBean userSearchBean = new UserSearchBean();
-//        userSearchBean.setName("bigduu");
+        userSearchBean.setName("bigduu");
+
         userSearchBean.setDepartmentList(departments);
         userSearchBean.setAge(22);
+        userSearchBean.setDepartment(testDepartment1);
+//        userSearchBean.setDepartment1(testDepartment1);
+
+
         AggregationUtils aggregationUtils = new AggregationUtils();
+
+
         aggregationUtils.setSearchBean(userSearchBean);
-        List<String> aggregation = aggregationUtils.getAggregation();
-        aggregation.forEach(System.out::println);
-        //        AggregationResults<Object> user = mongoTemplate.aggregate(aggregation , "user" , Object.class);
-//        user.getMappedResults().forEach(System.out::println);
+        Aggregation aggregation = aggregationUtils.getAggregation();
+
+
+        AggregationResults<Object> user = mongoTemplate.aggregate(aggregation , "user" , Object.class);
+        user.getMappedResults().forEach(System.out::println);
 
     }
 

@@ -28,5 +28,9 @@ public class User {
 
     private Integer age;
 
+    private Department department;
+
+    private Department department1;
+
     private List<Department> departmentList;
 }

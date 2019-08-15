@@ -11,9 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,18 +47,16 @@ public class AggregationUtils {
     private List<List<String>> test = new ArrayList<>();
 
 
-    public List<String> getAggregation() {
+    public Aggregation getAggregation() {
         //初始化变量
         init();
         //遍历实体
-        List<String> path = getPath(supperClassFields , searchBean);
+        List<String> strings1 = new ArrayList<>();
+        getPath(supperClassFields , searchBean , strings1);
 
-        int i = path.indexOf("|");
-        List<String> strings = path.subList(0 , i);
 
-        return path;
-
-        //        return newAggregation(operations);
+        //        return operations;
+        return newAggregation(operations);
     }
 
 
@@ -68,96 +68,70 @@ public class AggregationUtils {
 
     }
 
-    private Criteria match(Field field , Object targetObj , String path) {
-        String typeName = field.getType().getName();
+    private void match(String path , Object value , String type) {
         Criteria criteria = new Criteria(path);
-        //        try {
-        //            //            Object matchObj = field.get(this.searchBean);
-        //
-        //            //            if (ObjectType.STRING.equals(typeName)) {
-        //            //
-        //            //
-        //            //            } else {
-        //            //
-        //            //            }
-        //
-        //        } catch (Exception e) {
-        //            log.error("match {}" , (Object) e.getStackTrace());
-        //        }
-        return criteria;
-    }
-
-
-    private void listMatch(Field field , Criteria criteria , Object targetBean) {
         try {
-            Object list = field.get(targetBean);
-            Field sizeField = list.getClass().getDeclaredField("size");
-            sizeField.setAccessible(true);
-            Integer size = (Integer) sizeField.get(list);
-            if (size != 0) {
+            if (ObjectType.STRING.equals(type)) {
+                criteria.regex(value.toString());
 
+            } else {
+                criteria.is(value);
             }
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            log.error("listMatch {}" , (Object) e.getStackTrace());
+
+        } catch (Exception e) {
+            log.error("match {}" , (Object) e.getStackTrace());
         }
+        MatchOperation match = Aggregation.match(criteria);
+        operations.add(match);
     }
 
-    //    private List<Criteria> run(Field[] fields , Object targetBean) {
-    //        List<Criteria> criteriaList = new ArrayList<>();
-    //        for (Field field : fields) {
-    //            field.setAccessible(true);
-    //            String typeName = field.getType().getName();
-    //            try {
-    //                if (field.get(targetBean) != null && !ObjectType.LOGER.equals(typeName)) {
-    //                    Criteria criteria = new Criteria(field.getName());
-    //                    if (ObjectType.LIST.equals(typeName)) {
-    //                        listMatch(field , criteria , targetBean);
-    //                    } else {
-    //                        Criteria match = match(field , criteria);
-    //                        criteriaList.add(match);
-    //                    }
-    //
-    //                }
-    //            } catch (IllegalAccessException e) {
-    //                log.error("run {}" , (Object) e.getStackTrace());
-    //            }
-    //
-    //        }
-    //        return criteriaList;
-    //    }
 
-
-    private List<String> getListPath(List<Object> list , String name) {
-        List<String> path = new ArrayList<>();
+    /**
+     * @description: 递归循环遍历PATH
+     * @param list 对象中需要遍历取path的list
+     * @param name 改list的成员名称
+     * @param path 承接path继续构造
+     * @return java.util.List<java.lang.String>
+     * @author mugeng.du
+     * @date 2019-08-15 2:38 PM
+     */
+    private List<String> getListPath(List<Object> list , String name , List<String> path) {
         for (Object o : list) {
             path.add(name);
             Field[] declaredFields = o.getClass().getDeclaredFields();
-            List<String> path1 = getPath(declaredFields , o);
-            path.addAll(path1);
+            path = getPath(declaredFields , o , path);
         }
         return path;
     }
 
-    private List<String> getPath(Field[] fields , Object targetBean) {
-        List<String> path = new ArrayList<>();
+    private List<String> getPath(Field[] fields , Object targetBean , List<String> path) {
         for (Field field : fields) {
             field.setAccessible(true);
             String typeName = field.getType().getName();
             try {
                 //判空
                 if (field.get(targetBean) != null && !ObjectType.LOGER.equals(typeName)) {
+                    //判断是否是LIST类型 如果是list进入递归循环找到path
                     if (ObjectType.LIST.equals(typeName)) {
                         String name = field.getName();
-                        List<String> listPath = getListPath((List<Object>) field.get(targetBean) , name);
-                        path.addAll(listPath);
+                        getListPath((List<Object>) field.get(targetBean) , name , path);
+                        continue;
                     }
+                    //如果是基本类型就直接进入跳出阶段 直接match
                     if (ObjectType.STRING.equals(typeName) || ObjectType.DOUBLE.equals(typeName) || ObjectType.FLOAT.equals(typeName) || ObjectType.LONG.equals(typeName) || ObjectType.INTEGER.equals(typeName) || ObjectType.BOOLEAN.equals(typeName) || ObjectType.DATE.equals(typeName)) {
                         path.add(field.getName());
-                        path.add(",");
-                        path.add(field.get(targetBean).toString());
-                        path.add(typeName);
-                        path.add("|");
-
+                        String join = String.join("." , path);
+                        match(join , field.get(targetBean) , typeName);
+                        test.add(path);
+                        path = new ArrayList<>();
+                    }else {
+                        //如果不是基本类型 则封装一下List 让其遍历path
+                        String name = field.getName();
+                        Object o = field.get(targetBean);
+                        List<Object>  list = new ArrayList<>();
+                        list.add(o);
+                        getListPath(list, name , path);
+                        path = new ArrayList<>();
                     }
                 }
             } catch (IllegalAccessException e) {
