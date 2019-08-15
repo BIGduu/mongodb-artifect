@@ -1,5 +1,7 @@
 package com.bigduu.mongodbartifect.model.searchBean;
 
+import com.bigduu.mongodbartifect.annotation.GreatThan;
+import com.bigduu.mongodbartifect.annotation.LessThan;
 import com.bigduu.mongodbartifect.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,6 +22,10 @@ import java.sql.Timestamp;
 @Log4j2
 public class UserSearchBean extends User {
 
+    @GreatThan("age")
+    private Integer greatThanAge;
 
-    private Timestamp timestamp;
+    @LessThan("age")
+    private Integer lessThanAge;
+
 }
