@@ -15,12 +15,10 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
 
 /**
@@ -140,10 +138,11 @@ public class AggregationUtils {
                 e.printStackTrace();
             }
 
-            if (value != null && !"".equals(value.toString()) && !ObjectType.LOGER.equals(typeName)){
+            if (value != null && !"".equals(value.toString()) && !ObjectType.LOGER.equals(typeName)) {
                 GreatThan greatThan = field.getAnnotation(GreatThan.class);
                 if (greatThan != null) {
                     String targetField = greatThan.value();
+                    targetField = getTargetFieldPath(targetField);
                     Criteria gt = new Criteria(targetField).gt(value);
                     MatchOperation match = Aggregation.match(gt);
                     this.operations.add(match);
@@ -152,6 +151,7 @@ public class AggregationUtils {
                 LessThan lessThan = field.getAnnotation(LessThan.class);
                 if (lessThan != null) {
                     String targetField = lessThan.value();
+                    targetField = getTargetFieldPath(targetField);
                     Criteria lt = new Criteria(targetField).lt(value);
                     MatchOperation match = Aggregation.match(lt);
                     this.operations.add(match);
@@ -163,6 +163,12 @@ public class AggregationUtils {
         }
 
     }
+
+    private String getTargetFieldPath(String s) {
+        String[] s1 = s.split("_");
+        return String.join("." , s1);
+    }
+
 
     private void init() {
         this.searchBeanClass = searchBean.getClass();

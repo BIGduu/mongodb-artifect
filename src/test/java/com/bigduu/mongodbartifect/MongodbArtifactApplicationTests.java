@@ -63,12 +63,12 @@ public class MongodbArtifactApplicationTests {
         departments.add(testDepartment2);
 
         UserSearchBean userSearchBean = new UserSearchBean();
-//        userSearchBean.setName("bigduu");
+        userSearchBean.setName("bigduu");
 
-//        userSearchBean.setDepartmentList(departments);
+        userSearchBean.setDepartmentList(departments);
         userSearchBean.setGreatThanAge(20);
-//        userSearchBean.setLessThanAge(26);
-        userSearchBean.setDepartment(testDepartment1);
+        userSearchBean.setLessThanAge(26);
+//        userSearchBean.setDepartment(testDepartment1);
 //        userSearchBean.setDepartment1(testDepartment1);
 
 
