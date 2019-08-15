@@ -30,7 +30,4 @@ public class User {
 
     private Department department;
 
-    private Department department1;
-
-    private List<Department> departmentList;
 }

@@ -36,19 +36,16 @@ public class MongodbArtifactApplicationTests {
 
     @Test
     public void add() {
-        Department testDepartment1 = Department.builder().name("testDepartment1").build();
-        Department testDepartment2 = Department.builder().name("testDepartment2").build();
-        List<Department> departments = new ArrayList<>();
-        departments.add(testDepartment1);
-        departments.add(testDepartment2);
+        Department testDepartment1 = Department.builder().name("testnumber").number(11).build();
+        Department testDepartment2 = Department.builder().name("testnumber2").number(22).build();
 
         User userSearchBean = new User();
-        userSearchBean.setName("bigduu");
+        userSearchBean.setName("bigduuNumberTest1");
 
-        userSearchBean.setDepartmentList(departments);
-        userSearchBean.setAge(22);
-        userSearchBean.setDepartment(testDepartment1);
-        userSearchBean.setDepartment1(testDepartment1);
+//        userSearchBean.setDepartmentList(departments);
+        userSearchBean.setAge(26);
+        userSearchBean.setDepartment(testDepartment2);
+//        userSearchBean.setDepartment1(testDepartment1);
 
         userService.save(userSearchBean);
     }
@@ -56,20 +53,21 @@ public class MongodbArtifactApplicationTests {
 
     @Test
     public void contextLoads() {
-        Department testDepartment1 = Department.builder().name("testDepartment1").name1("1111").build();
+        Department testDepartment1 = Department.builder().name("testDepartment1").build();
         Department testDepartment2 = Department.builder().name("testDepartment2").build();
         List<Department> departments = new ArrayList<>();
         departments.add(testDepartment1);
         departments.add(testDepartment2);
 
         UserSearchBean userSearchBean = new UserSearchBean();
-        userSearchBean.setName("test1");
+//        userSearchBean.setName("test1");
 
-        userSearchBean.setDepartmentList(departments);
-        userSearchBean.setGreatThanAge(20);
-        userSearchBean.setLessThanAge(26);
-        userSearchBean.setDepartment(testDepartment1);
-        userSearchBean.setDepartment1(testDepartment1);
+//        userSearchBean.setDepartmentList(departments);
+//        userSearchBean.setGreatThanAge(24);
+//        userSearchBean.setLessThanAge(28);
+        userSearchBean.setLessThanDepartmentNumber(15);
+//        userSearchBean.setDepartment(testDepartment1);
+//        userSearchBean.setDepartment1(testDepartment1);
 
 
         AggregationUtils aggregationUtils = new AggregationUtils();

@@ -28,4 +28,10 @@ public class UserSearchBean extends User {
     @LessThan("age")
     private Integer lessThanAge;
 
+    @LessThan("department_number")
+    private Integer lessThanDepartmentNumber;
+
+    @GreatThan("department_number")
+    private Integer greatThanDepartmentNumber;
+
 }
