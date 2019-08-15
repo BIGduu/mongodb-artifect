@@ -10,6 +10,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
+/**
+ * @author mugeng.du
+ */
 @Document
 @Data
 @Builder
@@ -22,6 +25,8 @@ public class User {
     private String id;
 
     private String name;
+
+    private Integer age;
 
     private List<Department> departmentList;
 }

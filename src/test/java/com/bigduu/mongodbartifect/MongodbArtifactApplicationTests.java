@@ -17,10 +17,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RunWith (SpringRunner.class)
 @SpringBootTest
-public class MongodbArtifectApplicationTests {
+public class MongodbArtifactApplicationTests {
 
     @Autowired
     private UserService userService;
@@ -31,6 +33,16 @@ public class MongodbArtifectApplicationTests {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Test
+    public void add(){
+        Department test1depart = Department.builder().name("test1depart").build();
+        Department test2depart = Department.builder().name("test2depart").build();
+        Department test3depart = Department.builder().name("test3depart").build();
+        List<Department> collect = Stream.of(test1depart , test2depart , test3depart).collect(Collectors.toList());
+
+        User test1 = User.builder().name("test1").departmentList(collect).build();
+        userService.save(test1);
+    }
 
 
     @Test
@@ -42,15 +54,15 @@ public class MongodbArtifectApplicationTests {
         departments.add(testDepartment2);
 
         UserSearchBean userSearchBean = new UserSearchBean();
-        userSearchBean.setName("bigduu");
+//        userSearchBean.setName("bigduu");
         userSearchBean.setDepartmentList(departments);
-
+        userSearchBean.setAge(22);
         AggregationUtils aggregationUtils = new AggregationUtils();
         aggregationUtils.setSearchBean(userSearchBean);
-        Aggregation aggregation = aggregationUtils.getAggregation();
-
-        AggregationResults<Object> user = mongoTemplate.aggregate(aggregation , "user" , Object.class);
-        user.getMappedResults().forEach(System.out::println);
+        List<String> aggregation = aggregationUtils.getAggregation();
+        aggregation.forEach(System.out::println);
+        //        AggregationResults<Object> user = mongoTemplate.aggregate(aggregation , "user" , Object.class);
+//        user.getMappedResults().forEach(System.out::println);
 
     }
 

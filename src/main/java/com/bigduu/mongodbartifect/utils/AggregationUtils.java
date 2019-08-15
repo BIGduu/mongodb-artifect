@@ -1,31 +1,34 @@
 package com.bigduu.mongodbartifect.utils;
 
 
+import com.bigduu.mongodbartifect.Dictionary.ObjectType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
-import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
 
+/**
+ * @author mugeng.du
+ */
 @Data
 @AllArgsConstructor
 @Log4j2
 @NoArgsConstructor
 public class AggregationUtils {
+
 
     @Autowired
     private MongoTemplate template;
@@ -37,38 +40,131 @@ public class AggregationUtils {
     private Class<?> superClass;
     private Field[] supperClassFields;
 
+    private List<AggregationOperation> operations = new ArrayList<>();
 
-    public Aggregation getAggregation() {
+    private List<List<String>> test = new ArrayList<>();
+
+
+    public List<String> getAggregation() {
         //初始化变量
         init();
-        List<UnwindOperation> unwind = this.unwind();
-        ProjectionOperation id = project("id");
-        Aggregation aggregation = newAggregation((AggregationOperation) unwind ,id);
+        //遍历实体
+        List<String> path = getPath(supperClassFields , searchBean);
 
+        int i = path.indexOf("|");
+        List<String> strings = path.subList(0 , i);
 
-        return aggregation;
+        return path;
+
+        //        return newAggregation(operations);
     }
 
-    private List<UnwindOperation> unwind() {
-        List<UnwindOperation> unwindOperations = new ArrayList<>();
-        for (Field field : this.supperClassFields) {
+
+    private void project(Field field) {
+
+    }
+
+    private void unwind(Field field) {
+
+    }
+
+    private Criteria match(Field field , Object targetObj , String path) {
+        String typeName = field.getType().getName();
+        Criteria criteria = new Criteria(path);
+        //        try {
+        //            //            Object matchObj = field.get(this.searchBean);
+        //
+        //            //            if (ObjectType.STRING.equals(typeName)) {
+        //            //
+        //            //
+        //            //            } else {
+        //            //
+        //            //            }
+        //
+        //        } catch (Exception e) {
+        //            log.error("match {}" , (Object) e.getStackTrace());
+        //        }
+        return criteria;
+    }
+
+
+    private void listMatch(Field field , Criteria criteria , Object targetBean) {
+        try {
+            Object list = field.get(targetBean);
+            Field sizeField = list.getClass().getDeclaredField("size");
+            sizeField.setAccessible(true);
+            Integer size = (Integer) sizeField.get(list);
+            if (size != 0) {
+
+            }
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            log.error("listMatch {}" , (Object) e.getStackTrace());
+        }
+    }
+
+    //    private List<Criteria> run(Field[] fields , Object targetBean) {
+    //        List<Criteria> criteriaList = new ArrayList<>();
+    //        for (Field field : fields) {
+    //            field.setAccessible(true);
+    //            String typeName = field.getType().getName();
+    //            try {
+    //                if (field.get(targetBean) != null && !ObjectType.LOGER.equals(typeName)) {
+    //                    Criteria criteria = new Criteria(field.getName());
+    //                    if (ObjectType.LIST.equals(typeName)) {
+    //                        listMatch(field , criteria , targetBean);
+    //                    } else {
+    //                        Criteria match = match(field , criteria);
+    //                        criteriaList.add(match);
+    //                    }
+    //
+    //                }
+    //            } catch (IllegalAccessException e) {
+    //                log.error("run {}" , (Object) e.getStackTrace());
+    //            }
+    //
+    //        }
+    //        return criteriaList;
+    //    }
+
+
+    private List<String> getListPath(List<Object> list , String name) {
+        List<String> path = new ArrayList<>();
+        for (Object o : list) {
+            path.add(name);
+            Field[] declaredFields = o.getClass().getDeclaredFields();
+            List<String> path1 = getPath(declaredFields , o);
+            path.addAll(path1);
+        }
+        return path;
+    }
+
+    private List<String> getPath(Field[] fields , Object targetBean) {
+        List<String> path = new ArrayList<>();
+        for (Field field : fields) {
             field.setAccessible(true);
-            if ("java.util.List".equals(field.getType().getName())) {
-                try {
-                    Object o = field.get(this.searchBean);
-                    Field sizeField = o.getClass().getDeclaredField("size");
-                    sizeField.setAccessible(true);
-                    Integer size = (Integer) sizeField.get(o);
-                    if (size != 0) {
-                        unwindOperations.add(Aggregation.unwind(field.getName()));
+            String typeName = field.getType().getName();
+            try {
+                //判空
+                if (field.get(targetBean) != null && !ObjectType.LOGER.equals(typeName)) {
+                    if (ObjectType.LIST.equals(typeName)) {
+                        String name = field.getName();
+                        List<String> listPath = getListPath((List<Object>) field.get(targetBean) , name);
+                        path.addAll(listPath);
                     }
-                } catch (IllegalAccessException | NoSuchFieldException e) {
-                    log.info("unwind {}" , (Object) e.getStackTrace());
+                    if (ObjectType.STRING.equals(typeName) || ObjectType.DOUBLE.equals(typeName) || ObjectType.FLOAT.equals(typeName) || ObjectType.LONG.equals(typeName) || ObjectType.INTEGER.equals(typeName) || ObjectType.BOOLEAN.equals(typeName) || ObjectType.DATE.equals(typeName)) {
+                        path.add(field.getName());
+                        path.add(",");
+                        path.add(field.get(targetBean).toString());
+                        path.add(typeName);
+                        path.add("|");
+
+                    }
                 }
+            } catch (IllegalAccessException e) {
+                log.error("run {}" , (Object) e.getStackTrace());
             }
         }
-
-        return unwindOperations;
+        return path;
     }
 
 

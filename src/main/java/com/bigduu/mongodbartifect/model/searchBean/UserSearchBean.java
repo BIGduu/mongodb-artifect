@@ -2,15 +2,18 @@ package com.bigduu.mongodbartifect.model.searchBean;
 
 import com.bigduu.mongodbartifect.model.User;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.sql.Timestamp;
 
 
+/**
+ * @author mugeng.du
+ */
+@EqualsAndHashCode (callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

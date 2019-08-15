@@ -1,10 +1,12 @@
 package com.bigduu.mongodbartifect.repository;
 
 import com.bigduu.mongodbartifect.model.Department;
-import org.springframework.stereotype.Repository;
 
 
 
+/**
+ * @author mugeng.du
+ */
 public interface DepartmentRepository extends BaseRepository<Department,String> {
 
 }
